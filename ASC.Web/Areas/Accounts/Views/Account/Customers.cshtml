@@ -73,8 +73,8 @@
             </div>
             <div class="divider"></div>
             <form asp-controller="Account" asp-action="Customers" method="post" class="col s12" id="formUser">
-                <input type="hidden" asp-for="Registration.IsEdit" />
-                <input type="hidden" asp-for="Registration.Email" />
+                <input type="hidden" asp-for="Registration.IsEdit" id="Registration_IsEdit" />
+                <input type="hidden" asp-for="Registration.Email" id="Registration_Email" />
                 <div class="input-field col s4">
                     <input asp-for="Registration.Email" id="Input_Registration_Email" />
                     <label asp-for="Registration.Email"></label>
@@ -83,7 +83,7 @@
                     <div class="switch">
                         <label>
                             Is Active
-                            <input asp-for="Registration.IsActive" class="validate" />
+                            <input asp-for="Registration.IsActive" id="Registration_IsActive" class="validate" />
                             <span class="lever"></span>
                         </label>
                     </div>
@@ -98,30 +98,37 @@
                     </button>
                 </div>
             </form>
-            <div class="row col s12 right-align-validation-summary">All</div>
         </div>
     </div>
 </div>
 
 @section Scripts {
+    <!-- jQuery -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+
+    <!-- Materialize CSS/JS -->
+    <link href="~/css/materialize.min.css" rel="stylesheet" />
+    <script src="~/js/materialize.min.js"></script>
+
+    <!-- DataTables -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.css" />
+    <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.js"></script>
+
     <script>
         $(document).ready(function () {
-            // Initialize DataTable to show list of Engineers
+            // Initialize DataTable
             var table = $('#tblCustomers').DataTable({
                 "pageLength": 3,
                 'lengthMenu': [[3, 5, 10, -1], [3, 5, 10, 'All']]
             });
 
-            // Set Styles for DataTable and Number of Records to be displayed in drop-down
             $('#tblCustomers').css("width", "100%");
             $('select[name="tblCustomers_length"]').formSelect();
 
-            // Set the column API object
             var isActiveColumn = table.column(1);
             isActiveColumn.visible(false);
             $('.btnSubmit').attr('disabled', 'disabled');
 
-            // Handle Reset functionality
             $(document).on("click", ".reset", function () {
                 $('#formUser')[0].reset();
                 $('#Input_Registration_Email').removeAttr('disabled');
@@ -129,24 +136,22 @@
                 $('.btnSubmit').attr('disabled', 'disabled');
             });
 
-            // This is required to disable Email field on Server-side model validation failure.
             if ($('#Registration_IsEdit').val() === 'True') {
                 $('#Input_Registration_Email').attr('disabled', 'disabled');
                 $('.btnSubmit').removeAttr('disabled');
             }
 
-            // On click of Edit icon, populate the details section with details of service engineer
             $(document).on('click', '.edit', function () {
                 var user = $('#tblCustomers').DataTable().row($(this).parents('tr')).data();
                 $('#Registration_IsEdit').val('True');
                 $('#Input_Registration_Email').val(user[0]);
                 $('#Input_Registration_Email').attr('disabled', 'disabled');
-                $('#Registration_IsActive').prop('checked', user[1] === 'True' ? true : false);
+                $('#Registration_IsActive').prop('checked', user[1] === 'True');
                 $('.btnSubmit').removeAttr('disabled');
                 M.updateTextFields();
+                M.toast({ html: 'Đang chỉnh sửa thông tin người dùng...', classes: 'rounded' });
             });
 
-            // Set hidden Email field to correct value from UI field
             $(document).on('click', '.btnSubmit', function () {
                 $('#Registration_Email').val($("#Input_Registration_Email").val());
                 M.updateTextFields();

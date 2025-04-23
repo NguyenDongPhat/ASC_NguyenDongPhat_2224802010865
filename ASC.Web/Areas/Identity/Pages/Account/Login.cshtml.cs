@@ -104,7 +104,7 @@ namespace ASC.Web.Areas.Identity.Pages.Account
                 }
                 var list = await _userManager.GetClaimsAsync(user);
                 var isActive = Boolean.Parse(list.SingleOrDefault(p => p.Type == "IsActive").Value);
-                if (isActive)
+                if (!isActive)
                 {
                     ModelState.AddModelError(string.Empty, "Account has been locked.");
                     return Page();

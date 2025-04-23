@@ -47,7 +47,7 @@ namespace ASC.Web.Areas.Accounts.Controllers
         public async Task<IActionResult> ServiceEngineers(ServiceEngineerViewModel serviceEngineer)
         {
             serviceEngineer.ServiceEngineers = HttpContext.Session.GetSession<List<IdentityUser>>("ServiceEngineers");
-            if (!ModelState.IsValid)
+            if (serviceEngineer.ServiceEngineers==null)
             {
                 return View(serviceEngineer);
             }
@@ -139,7 +139,7 @@ namespace ASC.Web.Areas.Accounts.Controllers
         public async Task<IActionResult> Customers(CustomerViewModel customer)
         {
             customer.Customers = HttpContext.Session.GetSession<List<IdentityUser>>("Customers");
-            if (!ModelState.IsValid)
+            if (customer.Customers==null)
             {
                 return View(customer);
             }
@@ -165,6 +165,36 @@ namespace ASC.Web.Areas.Accounts.Controllers
             }
 
             return RedirectToAction("Customers");
+        }
+
+        [HttpGet]
+        public IActionResult Profile()
+        {
+            var user = HttpContext.User.GetCurrentUserDetails();
+            return View(new ProfileModel() { UserName = user.Name });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Profile(ProfileModel profile)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View();
+            }
+
+            // Update UserName
+            var user = await _userManager.FindByEmailAsync(HttpContext.User.GetCurrentUserDetails().Email);
+            user.UserName = profile.UserName;
+            IdentityResult result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+            {
+                result.Errors.ToList().ForEach(p => ModelState.AddModelError("", p.Description));
+                return View();
+            }
+            await _signInManager.RefreshSignInAsync(user);
+
+            return RedirectToAction("Dashboard", "Dashboard", new { area = "ServiceRequests" });
         }
 
     }

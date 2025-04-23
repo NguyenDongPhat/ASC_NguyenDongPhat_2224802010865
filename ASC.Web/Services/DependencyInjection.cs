@@ -1,4 +1,6 @@
-﻿using ASC.DataAccess;
+﻿using ASC.Business.Interfaces;
+using ASC.Business;
+using ASC.DataAccess;
 using ASC.Solution.Services;
 using ASC.Web.Configuration;
 using ASC.Web.Data;
@@ -70,6 +72,11 @@ namespace ASC.Web.Services
             services.AddRazorPages();
             services.AddDatabaseDeveloperPageExceptionFilter();
             services.AddControllersWithViews();
+
+            //Add MasterDataOperations
+            services.AddScoped<IMasterDataOperations, MasterDataOperations>();
+            services.AddAutoMapper(typeof(ApplicationDbContext));
+            //
 
             return services;
         }

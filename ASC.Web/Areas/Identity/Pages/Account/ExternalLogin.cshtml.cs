@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using ASC.Solution.Services;
 using System.Linq;
+using ASC.Model.BaseTypes;
 
 namespace ASC.Web.Areas.Identity.Pages.Account
 {
@@ -41,11 +42,8 @@ namespace ASC.Web.Areas.Identity.Pages.Account
 
         [BindProperty]
         public InputModel Input { get; set; }
-
         public string ProviderDisplayName { get; set; }
-
         public string ReturnUrl { get; set; }
-
         [TempData]
         public string ErrorMessage { get; set; }
 
@@ -55,6 +53,7 @@ namespace ASC.Web.Areas.Identity.Pages.Account
             [EmailAddress]
             public string Email { get; set; }
         }
+        public IActionResult OnGet() => RedirectToPage("./Login");
 
         public IActionResult OnPost(string provider, string returnUrl = null)
         {
@@ -65,8 +64,7 @@ namespace ASC.Web.Areas.Identity.Pages.Account
 
         public async Task<IActionResult> OnGetCallbackAsync(string returnUrl = null, string remoteError = null)
         {
-            returnUrl ??= Url.Content("~/");
-
+            returnUrl = returnUrl ?? Url.Content("~/");
             if (remoteError != null)
             {
                 ErrorMessage = $"Error from external provider: {remoteError}";
@@ -80,28 +78,12 @@ namespace ASC.Web.Areas.Identity.Pages.Account
                 return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
             }
 
+            // Sign in the user with this external login provider if the user already has a login.
             var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
             if (result.Succeeded)
             {
-                var user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
-                var list = await _userManager.GetClaimsAsync(user);
-
-                var isActiveClaim = list.SingleOrDefault(c => c.Type == "IsActive");
-                var isActive = false;
-
-                if (isActiveClaim != null)
-                {
-                    Boolean.TryParse(isActiveClaim.Value, out isActive);
-                }
-
-                if (!isActive)
-                {
-                    ModelState.AddModelError(string.Empty, "Account has been locked.");
-                    return Page();
-                }
-
-                _logger.LogInformation("User logged in with {LoginProvider} provider.", info.LoginProvider);
-                return RedirectToAction("Dashboard", "Dashboard", new { Area = "ServiceRequests" });
+                _logger.LogInformation("{Name} logged in with {LoginProvider} provider.", info.Principal.Identity.Name, info.LoginProvider);
+                return RedirectToAction("Dashboard", "Dashboard", new { area = "ServiceRequests" });
             }
 
             if (result.IsLockedOut)
@@ -110,67 +92,71 @@ namespace ASC.Web.Areas.Identity.Pages.Account
             }
             else
             {
+                // If the user does not have an account, then ask the user to create an account.
                 ReturnUrl = returnUrl;
                 ProviderDisplayName = info.ProviderDisplayName;
-                var email = info.Principal?.FindFirstValue(ClaimTypes.Email);
-                return RedirectToPage("./ExternalLogin", new InputModel { Email = email });
+                if (info.Principal.HasClaim(c => c.Type == ClaimTypes.Email))
+                {
+                    Input = new InputModel
+                    {
+                        Email = info.Principal.FindFirstValue(ClaimTypes.Email)
+                    };
+                }
+                return Page();
             }
         }
 
         public async Task<IActionResult> OnPostConfirmationAsync(string returnUrl = null)
         {
-            returnUrl ??= Url.Content("~/");
-
-            var info = await _signInManager.GetExternalLoginInfoAsync();
-            if (info == null)
-            {
-                ErrorMessage = "Error loading external login information during confirmation.";
-                return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
-            }
-
             if (ModelState.IsValid)
             {
-                var user = new IdentityUser { UserName = Input.Email, Email = Input.Email };
+                // Get the information about the user from the external login provider
+                var info = await _signInManager.GetExternalLoginInfoAsync();
+                if (info == null)
+                {
+                    return RedirectToPage("./ExternalLoginFailure");
+                }
+
+                var user = new IdentityUser
+                {
+                    UserName = Input.Email,
+                    Email = Input.Email,
+                    EmailConfirmed = true
+                };
 
                 var result = await _userManager.CreateAsync(user);
+                await _userManager.AddClaimAsync(user, new System.Security.Claims.Claim("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress", user.Email));
+                await _userManager.AddClaimAsync(user, new System.Security.Claims.Claim("IsActive", "True"));
+                if (!result.Succeeded)
+                {
+                    result.Errors.ToList().ForEach(p => ModelState.AddModelError("", p.Description));
+                    return Page();
+                }
+
+                // Assign user to User Role
+                var roleResult = await _userManager.AddToRoleAsync(user, Roles.User.ToString());
+                if (!roleResult.Succeeded)
+                {
+                    roleResult.Errors.ToList().ForEach(p => ModelState.AddModelError("", p.Description));
+                    return Page();
+                }
+
                 if (result.Succeeded)
                 {
                     result = await _userManager.AddLoginAsync(user, info);
                     if (result.Succeeded)
                     {
+                        await _signInManager.SignInAsync(user, isPersistent: false);
                         _logger.LogInformation("User created an account using {Name} provider.", info.LoginProvider);
-
-                        var userId = await _userManager.GetUserIdAsync(user);
-                        var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-                        var callbackUrl = Url.Page(
-                            "/Account/ConfirmEmail",
-                            pageHandler: null,
-                            values: new { area = "Identity", userId = userId, code = code },
-                            protocol: Request.Scheme);
-
-                        await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",$"Please confirm your account by <a href=\"{callbackUrl}\">clicking here</a>.");
-
-
-                        if (_userManager.Options.SignIn.RequireConfirmedAccount)
-                        {
-                            return RedirectToPage("./RegisterConfirmation", new { email = Input.Email });
-                        }
-
-                        await _signInManager.SignInAsync(user, isPersistent: false, info.LoginProvider);
-                        return LocalRedirect(returnUrl);
+                        return RedirectToAction("Dashboard", "Dashboard", new { area = "ServiceRequests" });
                     }
-                }
-
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError(string.Empty, error.Description);
+                    ModelState.AddModelError(string.Empty, result.ToString());
                 }
             }
 
-            ProviderDisplayName = info.ProviderDisplayName;
-            ReturnUrl = returnUrl;
+            ViewData["ReturnUrl"] = returnUrl;
             return Page();
         }
+
     }
 }

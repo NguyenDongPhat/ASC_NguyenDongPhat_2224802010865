@@ -8,160 +8,169 @@
 }
 
 <div>
-    <div class="row"></div>
+    <!-- DANH SÁCH KỸ SƯ DỊCH VỤ -->
     <div class="row padding-left-20px padding-right-20px">
-        <div class="col-md-7 col-sm-12">
+        <div class="row z-depth-3">
             <div class="section white-text padding-left-10px blue-grey lighten-1">
                 <h5>Users</h5>
             </div>
         </div>
-    </div>
-    <div class="divider"></div>
-    <div class="col s12 padding-bottom-15px">
-        @if (Model.ServiceEngineers != null)
-        {
-            <b> Display List of Service Engineers 🔧</b>
-            <table class="highlight centered" id="tblServiceEngineers">
-                <thead>
-                    <tr>
-                        <th data-field="Email">Email</th>
-                        <th data-field="UserName">Name</th>
-                        <th data-field="IsActive">Is Active</th>
-                        <th data-field="IsActiveImg">Status Img</th>
-                        <th data-field="Actions">Edit User ✏️</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var user in Model.ServiceEngineers)
-                    {
-                        var identity = await userManager.GetClaimsAsync(user);
-                        <tr>
-                            <td>@user.Email</td>
-                            <td>@user.UserName</td>
-                            <td>@(Boolean.Parse(identity.SingleOrDefault(p => p.Type == "IsActive").Value))</td>
-                            <td>
-                                <img src="@(Boolean.Parse(identity.SingleOrDefault(p => p.Type == "IsActive").Value) ? "./images/green_tick.png" : "./images/red_cross.png")" />
-                            </td>
-                            <td>
-                                <i class="small material-icons edit cursorHand">
-                                    mode_edit
-                                </i>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        }
-        else
-        {
-            <b> In case of No records, display no records message ⚠️</b>
-            <div class="card blue-grey lighten-5">
-                <div class="card-content white-text">
-                    <span class="card-title">No Service Engineers!!!</span>
-                    <p>
-                        No Service Engineers found, please add a Service Engineer to system.
-                    </p>
-                </div>
-            </div>
-        }
-    </div>
-</div>
-<div class="row"></div>
-
-@* Details Section 🛠️ *@
-<div class="row z-depth-3">
-    <div class="col s12 padding-0px">
-        <div class="section white-text padding-left-10px blue-grey lighten-1">
-            <h5>Service Engineer Details</h5>
-        </div>
         <div class="divider"></div>
-        <form asp-controller="Account" asp-action="ServiceEngineers" method="post" class="col s12" id="frmUser">
-            <input type="hidden" asp-for="Registration.IsEdit" />
-            <input type="hidden" asp-for="Registration.Email" />
-            <div class="input-field col s4">
-                <input asp-for="Registration.Email" id="Input_Registration_Email" />
-                <label asp-for="Registration.Email"></label>
-            </div>
-            <div class="input-field col s4">
-                <input asp-for="Registration.UserName" class="validate" />
-                <label asp-for="Registration.UserName"></label>
-            </div>
-            <div class="input-field col s4">
-                <input asp-for="Registration.Password" class="validate" />
-                <label asp-for="Registration.Password"></label>
-            </div>
-            <div class="input-field col s4">
-                <input asp-for="Registration.ConfirmPassword" class="validate" />
-                <label asp-for="Registration.ConfirmPassword"></label>
-            </div>
-            <div class="input-field col s4">
-                <div class="switch">
-                    <label>
-                        Is Active
-                        <input asp-for="Registration.IsActive" class="validate" />
-                        <span class="lever"></span>
-                    </label>
+        <div class="col s12 padding-bottom-15px">
+            @if (Model.ServiceEngineers != null)
+            {
+                @* Display List of Service Engineers *@
+                <table class="highlight centered" id="tblServiceEngineers">
+                    <thead>
+                        <tr>
+                            <th data-field="Email">Email</th>
+                            <th data-field="UserName">Name</th>
+                            <th data-field="IsActive">Is Active</th>
+                            <th data-field="IsActiveImg">Status Img</th>
+                            <th data-field="Actions">✏️ Edit</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var user in Model.ServiceEngineers)
+                        {
+                            var identity = await userManager.GetClaimsAsync(user);
+                            <tr>
+                                <td>@user.Email</td>
+                                <td>@user.UserName</td>
+                                <td>@(Boolean.Parse(identity.SingleOrDefault(p => p.Type == "IsActive").Value))</td>
+                                <td>
+                                    <img src="@(Boolean.Parse(identity.SingleOrDefault(p => p.Type == "IsActive").Value) ? "/images/green_tick.png" : "/images/red_cross.png")" />
+                                </td>
+                                <td>
+                                    <i class="small material-icons edit cursorHand">mode_edit</i>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <b> In case of No records, display no records message 🚫</b>
+                <div class="card blue-grey lighten-5">
+                    <div class="card-content white-text">
+                        <span class="card-title">⚠️ No Service Engineers!!!</span>
+                        <p>No Service Engineers found, please add a Service Engineer to system.</p>
+                    </div>
                 </div>
+            }
+        </div>
+    </div>
+
+    <!-- FORM CHI TIẾT KỸ SƯ -->
+    <div class="row z-depth-3">
+        <div class="col s12 padding-0px">
+            <div class="section white-text padding-left-10px blue-grey lighten-1">
+                <h5>Service Engineer Details</h5>
             </div>
-            <div class="input-field col s4 right-align">
-                <button class="btn waves-effect waves-light btnSubmit" type="submit" name="action">
-                    Create
-                    <i class="material-icons right">send</i>
-                </button>
-                <button class="btn waves-effect waves-light reset red lighten-1" type="button" name="action">
-                    Reset
-                </button>
-            </div>
-            <div class="row col s12 right-align" asp-validation-summary="All"></div>
-        </form>
+            <div class="divider"></div>
+            <form asp-controller="Account" asp-action="ServiceEngineers" method="post" class="col s12" id="frmUser">
+                <input type="hidden" asp-for="Registration.IsEdit" />
+                <input type="hidden" asp-for="Registration.Email" />
+                <div class="input-field col s4">
+                    <input asp-for="Registration.Email" id="Input_Registration_Email" />
+                    <label asp-for="Registration.Email"></label>
+                </div>
+                <div class="input-field col s4">
+                    <input asp-for="Registration.UserName" class="validate" />
+                    <label asp-for="Registration.UserName"></label>
+                </div>
+                <div class="input-field col s4">
+                    <input asp-for="Registration.Password" class="validate" />
+                    <label asp-for="Registration.Password"></label>
+                </div>
+                <div class="input-field col s4">
+                    <input asp-for="Registration.ConfirmPassword" class="validate" />
+                    <label asp-for="Registration.ConfirmPassword"></label>
+                </div>
+                <div class="input-field col s4">
+                    <div class="switch">
+                        <label>
+                            Is Active
+                            <input asp-for="Registration.IsActive" class="validate" />
+                            <span class="lever"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="input-field col s4 right-align">
+                    <button class="btn waves-effect waves-light btnSubmit" type="submit" name="action">
+                        Create
+                        <i class="material-icons right">send</i>
+                    </button>
+                    <button class="btn waves-effect waves-light reset red lighten-1" type="button" name="action">
+                        Reset
+                    </button>
+                </div>
+                <div class="row col s12 right-align" asp-validation-summary="All"></div>
+            </form>
+        </div>
     </div>
 </div>
 
+<!-- SCRIPT -->
 @section Scripts {
+    <!-- jQuery -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+
+    <!-- jQuery Validation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/4.0.0/jquery.validate.unobtrusive.min.js"></script>
+
+    <!-- Materialize CSS -->
+    <link href="~/css/materialize.min.css" rel="stylesheet" />
+    <script src="~/js/materialize.min.js"></script>
+
+    <!-- DataTables -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.css" />
+    <!-- Optional: Material Design theme for DataTables -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/dataTables.material.min.css" />
+    <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.js"></script>
+
     <script>
         $(document).ready(function () {
-            // Initialize DataTable to show list of Engineers
+            // Initialize DataTable
             var table = $('#tblServiceEngineers').DataTable({
-                "pageLength": 3,
-                //"number of records to be displayed per page"
-                "lengthMenu": [[3, 5, 10, -1], [3, 5, 10, 'All']]
+                "pageLength": 5,
+                "lengthMenu": [3, 5, 10, -1, 3, 5, 10, 'All']
             });
 
-            // Set Styles for DataTable and Number of Records to be displayed in drop-down
             $('#tblServiceEngineers').css("width", "100%");
-            $('#tblServiceEngineers_length').find('select').formSelect();
+            $('#tblServiceEngineers_length').addClass('customLength');
+            $('#tblServiceEngineers_length').formSelect();
 
-            // Get the column API object
-            var isActiveColumn = table.column(2);
-            isActiveColumn.visible(false);
+            var IsActiveColumn = table.column(2);
+            IsActiveColumn.visible(false);
 
-            // Handle Reset functionality
+            // Reset
             $(document).on('click', '.reset', function () {
                 $('#frmUser')[0].reset();
-                $('#frmUser').find('input').removeAttr('disabled');
+                $('#Input_Registration_Email').removeAttr('disabled');
                 $('.btnSubmit').text('Create');
                 $('#Registration_IsEdit').val('false');
             });
 
-            // This is required to disable Email field on Server-side model validation failure.
-            if ($('#Registration_IsEdit').val() == 'true') {
+            if ($('#Registration_IsEdit').val() === 'true') {
                 $('#Input_Registration_Email').attr('disabled', 'disabled');
             }
 
-            // On click of EDIT icon, populate the details section with details of service engineer
+            // Edit icon click
             $(document).on('click', '.edit', function () {
                 var user = table.row($(this).parents('tr')).data();
                 $('#Registration_IsEdit').val('true');
                 $('#Input_Registration_Email').val(user[0]);
                 $('#Input_Registration_Email').attr('disabled', 'disabled');
-                $('#Registration_UserName').val(user[1]);
-                $('#Registration_UserName').addClass('valid');
-                $('#Registration_IsActive').prop('checked', user[2] == 'True' ? true : false);
+                $('#Registration_UserName').val(user[1]).addClass('valid');
+                $('#Registration_IsActive').prop('checked', user[2] == 'True');
                 $('.btnSubmit').text('Save');
+                M.updateTextFields();
             });
 
-            // Hidden Email field to correct value from UI field
-            // This is required for
+            // Submit button sync email hidden field
             $(document).on('click', '.btnSubmit', function () {
                 $('#Registration_Email').val($('#Input_Registration_Email').val());
                 M.updateTextFields();
