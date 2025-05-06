@@ -4,7 +4,7 @@ namespace ASC.Web.Areas.Configuration.Models
 {
     public class MasterDataValueViewModel
     {
-        public string RowKey { get; set; }
+        public string ? RowKey { get; set; }
 
         [Required]
         [Display(Name = "Partition Key")]

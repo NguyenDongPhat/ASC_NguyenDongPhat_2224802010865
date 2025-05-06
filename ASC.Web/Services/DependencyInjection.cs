@@ -38,6 +38,12 @@ namespace ASC.Web.Services
                     options.ClientSecret = config["Google:Identity:ClientSecret"];
                 });
 
+            //....
+            services.AddControllersWithViews().AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.PropertyNamingPolicy = null;
+            });
+
             return services;
         }
 
