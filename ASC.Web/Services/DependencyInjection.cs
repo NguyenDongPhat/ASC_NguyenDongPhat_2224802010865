@@ -44,6 +44,11 @@ namespace ASC.Web.Services
                 options.JsonSerializerOptions.PropertyNamingPolicy = null;
             });
 
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = config.GetSection("CacheSettings:CacheConnectionString").Value;
+                options.InstanceName = config.GetSection("CacheSettings:CacheInstance").Value;
+            });
             return services;
         }
 
@@ -73,6 +78,8 @@ namespace ASC.Web.Services
             services.AddSingleton<INavigationCacheOperations, NavigationCacheOperations>();
 
             //....
+            services.AddScoped<IMasterDataCacheOperations, MasterDataCacheOperations>();
+            services.AddScoped<IServiceRequestOperations, ServiceRequestOperations>();
 
             //Add RazorPages, MVC
             services.AddRazorPages();
@@ -83,7 +90,6 @@ namespace ASC.Web.Services
             services.AddScoped<IMasterDataOperations, MasterDataOperations>();
             services.AddAutoMapper(typeof(ApplicationDbContext));
             //
-
             return services;
         }
     }

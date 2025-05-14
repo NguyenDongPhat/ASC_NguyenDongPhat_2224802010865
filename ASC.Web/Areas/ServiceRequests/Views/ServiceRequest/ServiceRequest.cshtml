@@ -1,0 +1,82 @@
+﻿@model ASC.Web.Areas.ServiceRequests.Models.NewServiceRequestViewModel
+@using System.Globalization
+@{
+    Layout = "_SecureLayout";
+}
+<div class="row"></div>
+<div class="row padding-top-20px padding-left-20px padding-right-20px">
+    @* Details Section *@
+    <div class="row z-depth-3">
+        <div class="col s12 padding-0px">
+            <div class="section white-text padding-left-10px blue-grey lighten-1">
+                <h5>New Service Request</h5>
+            </div>
+            <div class="divider"></div>
+            <form asp-controller="ServiceRequest" asp-action="ServiceRequest" method="post">
+                <div class="col s12">
+                    <div class="row">
+                        <div class="input-field col s4">
+                            <select asp-for="VehicleName" asp-items='@(new SelectList(ViewBag.VehicleNames,"RowKey","Name"))' class="" required="required">
+                                <option value="">Please select one</option>
+                            </select>
+                            <label asp-for="VehicleName"></label>
+                        </div>
+                        <div class="input-field col s4">
+                            <select asp-for="VehicleType" asp-items='@(new SelectList(ViewBag.VehicleTypes,"RowKey","Name"))' class="validate" required="required">
+                                <option value="">Please select one</option>
+                            </select>
+                            <label asp-for="VehicleType"></label>
+                        </div>
+                        <div class="input-field col s4">
+                            <input asp-for="RequestedDate" type="text" class="datepicker" />
+                            <label asp-for="RequestedDate"></label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="input-field col s8">
+                            <textarea asp-for="RequestedServices" class="materialize-textareavalidate"></textarea>
+                            <label asp-for="RequestedServices"></label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="input-field col s12 right-align">
+                            <button class="btn waves-effect waves-light btnSubmit" type="submit" name="action">
+                                Create
+                                <i class="material-icons right">send</i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row col s12 right-align" asp-validation-summary="All"></div>
+                </div>
+            </form>
+        </div>
+        <div class="row"></div>
+    </div>
+</div>
+@section Scripts {
+    <!-- jQuery -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+
+    <!-- jQuery Validation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/4.0.0/jquery.validate.unobtrusive.min.js"></script>
+
+    <!-- Materialize CSS -->
+    <link href="~/css/materialize.min.css" rel="stylesheet" />
+    <script src="~/js/materialize.min.js"></script>
+
+    <!-- DataTables -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.css" />
+    <!-- Optional: Material Design theme for DataTables -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/dataTables.material.min.css" />
+    <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('.datepicker').datepicker({
+                format: 'dd/mm/yyyy',
+            });
+            $('select').formSelect();
+            $('select[required]').css({ display: 'block', position: 'absolute', visibility: 'hidden' });
+        });
+    </script>  
+}
