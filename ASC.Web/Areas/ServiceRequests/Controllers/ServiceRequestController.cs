@@ -35,7 +35,7 @@ namespace ASC.Web.Areas.ServiceRequests.Controllers
         [HttpPost]
         public async Task<IActionResult> ServiceRequest(NewServiceRequestViewModel request)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 var masterData = await _masterData.GetMasterDataCacheAsync();
                 ViewBag.VehicleTypes = masterData.Values.Where(p => p.PartitionKey == MasterKeys.VehicleType.ToString()).ToList();

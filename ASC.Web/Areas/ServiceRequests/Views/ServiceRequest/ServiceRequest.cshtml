@@ -74,7 +74,14 @@
         $(document).ready(function () {
             $('.datepicker').datepicker({
                 format: 'dd/mm/yyyy',
+                onSelect: function (dateText) {
+                    // Chuyển ngày về dạng yyyy-MM-dd để ASP.NET hiểu
+                    const parts = dateText.split('/');
+                    const formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+                    $(this.el).val(formattedDate);
+                }
             });
+
             $('select').formSelect();
             $('select[required]').css({ display: 'block', position: 'absolute', visibility: 'hidden' });
         });

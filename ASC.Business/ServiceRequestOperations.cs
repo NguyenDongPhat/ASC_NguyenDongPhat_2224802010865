@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ASC.Business.Interfaces;
+using ASC.Model.Queries;
 namespace ASC.Business
 {
     public class ServiceRequestOperations: IServiceRequestOperations
@@ -49,6 +50,14 @@ namespace ASC.Business
                 _unitOfWork.CommitTransaction();
                 return serviceRequest;
             }
+        }
+
+        public async Task<List<ServiceRequest>> GetServiceRequestsByRequestedDateAndStatus
+        (DateTime? requestedDate, List<string> status = null, string email = "", string serviceEngineerEmail = "")
+        {
+            var query = Queries.GetDashboardQuery(requestedDate, status, email, serviceEngineerEmail);
+            var serviceRequests = await _unitOfWork.Repository<ServiceRequest>().FindAllByQuery(query);
+            return serviceRequests.ToList();
         }
     }
 }
